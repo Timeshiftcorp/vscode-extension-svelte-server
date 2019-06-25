@@ -106,15 +106,15 @@ module.exports = ({ prod = false } = {}) => ({
       filename: "style.[contenthash].css"
     }),
     new webpack.DefinePlugin(envify(env)),
-    new HtmlPlugin({
-      template: "index.html",
-      // minify: prod && {
-      //   removeComments: true,
-      //   collapseWhitespace: true,
-      //   removeAttributeQuotes: true
-      // },
-      // chunksSortMode: prod ? "manual" : "auto"
-    }),
+    // new HtmlPlugin({
+    //   template: "index.html",
+    //   // minify: prod && {
+    //   //   removeComments: true,
+    //   //   collapseWhitespace: true,
+    //   //   removeAttributeQuotes: true
+    //   // },
+    //   // chunksSortMode: prod ? "manual" : "auto"
+    // }),
     // new ScriptExtHtmlPlugin({
     //   defaultAttribute: "defer",
     //   preload: {
