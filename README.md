@@ -14,3 +14,6 @@ entry file app.svelte
 1. ctrl + shift + p -> svelte-server
 2. open in browser localhost:8099
 3. edit .svelte file in project
+
+
+![Alt Text](main.gif)
