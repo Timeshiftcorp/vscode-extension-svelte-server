@@ -4,6 +4,10 @@ All notable changes to the "svelte-repl" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [v 0.0.5]
 
-- Initial release
+- import prefix  example:
+   ```
+    import component "~/component.svelte"
+   ```
+- structure  [ ~ -> src ]

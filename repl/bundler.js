@@ -5205,9 +5205,9 @@
 	          `${resolved}/index.mjs`;
 	      }
 
-	      // if (importee.startsWith('./')) {
-	      //   importee = importee.replace('.', location.origin)
-	      // }
+	      if (importee.startsWith('~')) {
+	        importee = importee.replace('~', "src");
+	      }
 
 	      // importing from another file in REPL
 	      if (importee in lookup) return importee;
