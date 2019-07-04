@@ -4,12 +4,16 @@ const vscode = require('vscode');
 const express = require('express');
 const path = require('path');
 const { createServer } = require('http');
+const relative = require('relative');
 const opener = require("opener");
 const r = require('vscode-uri')
+const serveStatic = require('serve-static')
 let once = false;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-
+let start = false;
+let serverMn;
+let active = false;
 /**
  * @param {vscode.ExtensionContext} context
  */
@@ -20,16 +24,34 @@ function activate(context) {
 	console.log('Congratulations, your extension "svelte-repl" is now active!');
 	const WebSocket = require('ws');
 	const app = express();
-	app.use(express.static(vscode.workspace.rootPath));
+	app.delete
+	app.use(serveStatic(vscode.workspace.rootPath, { 'index': false }));
+	// app.use(serveStatic(vscode.workspace.rootPath + '/src', { 'index': false }));
+	app.get('/pkg', function (req, resp, name) {
+		resp.header("Access-Control-Allow-Origin", "*");
+		resp.header("Access-Control-Allow-Headers", "X-Requested-With");
+		resolve(req.query.q, { extensions: ['.css', '.js', '.svelte'], basedir: path.join(__dirname, '../ws/public/') }, function (err, res) {
+			if (err) console.error(err);
+
+			else {
+				res.statusCode = 200;
+				res.setHeader('Content-Type', 'text/plain');
+				resp.send(relative(__dirname, res));
+			}
+		});
+		// resp.send('hello world');
+	});
 
 
-
-	// app.use(express.static(path.join(vscode.workspace.rootPath, '/src')));
-	app.use(express.static(path.join(context.extensionPath, '/repl')));
+	app.use(express.static(path.join(vscode.workspace.rootPath, '')));
+	app.use(serveStatic(path.join(context.extensionPath, '/repl')));
 	const server = createServer(app);
 	const wss = new WebSocket.Server({ server });
 	wss.on('connection', function connection(ws) {
 		ws.on('message', function incoming(data) {
+			if (data == 'first') {
+				once = false;
+			}
 			wss.clients.forEach(function each(client) {
 				if (client.readyState === WebSocket.OPEN) {
 					client.send(data);
@@ -37,23 +59,24 @@ function activate(context) {
 			});
 		});
 	});
-	server.listen(8099, function () {
-		console.log('Listening on http://localhost:8099');
-		opener('http://localhost:8099')
-	});
+	serverMn = server;
+	// server.listen(8099, function () {
+	// 	console.log('Listening on http://localhost:8099');
+	// 	opener('http://localhost:8099')
+	// });
+
 	var ws = new WebSocket("ws://localhost:8099");
 
 	let css
-	vscode.workspace.findFiles("**/*.css", 10).then(c => {
+	vscode.workspace.findFiles("**/*.css", '**/node_modules', 10).then(c => {
 		c.map(it => {
 			vscode.workspace.openTextDocument(it).then(doc => {
 				css += doc.getText()
 			})
 		})
-		let z = css;
 	})
 	let svelteComponents = [];
-	vscode.workspace.findFiles("**/*.svelte", 10).then(c => {
+	vscode.workspace.findFiles("src/**/*.svelte", 5000).then(c => {
 		c.map(it => {
 			vscode.workspace.openTextDocument(it).then(doc => {
 
@@ -71,9 +94,27 @@ function activate(context) {
 
 			})
 		})
-		let z = css;
 	})
 
+	vscode.workspace.findFiles("src/**/*.js", '**/node_modules', 5000).then(c => {
+		c.map(it => {
+
+
+			vscode.workspace.openTextDocument(it).then(doc => {
+				if (doc.fileName.toLowerCase().indexOf('main.js') != -1) {
+
+
+				} else {
+					var name = doc.fileName.substring(doc.fileName.indexOf('src'), doc.fileName.length).replace('.js', '').split("\\").join("/");
+					let component = { component: { name: name, type: "js", source: doc.getText() }, text: doc.getText() };
+
+					svelteComponents.push(component)
+				}
+
+
+			})
+		})
+	})
 
 
 	// The command has been defined in the package.json file
@@ -140,8 +181,15 @@ function activate(context) {
 	});
 
 	let disposable = vscode.commands.registerCommand('extension.svelte-server', function () {
-		if (e.document === vscode.window.activeTextEditor.document && vscode.window.activeTextEditor.document.fileName.toLowerCase().indexOf('app.svelte') != -1 && !is_send) {
-
+		if (serverMn && active) {
+			serverMn.close()
+			active = false;
+		} else {
+			active = true;
+			server.listen(8099, function () {
+				console.log('Listening on http://localhost:8099');
+				opener('http://localhost:8099')
+			});
 		}
 		vscode.window.showInformationMessage('server is run http://localhost:8099');
 	});
@@ -151,7 +199,12 @@ function activate(context) {
 exports.activate = activate;
 
 // this method is called when your extension is deactivated
-function deactivate() { }
+function deactivate() {
+
+	if (serverMn) {
+		serverMn.close();
+	}
+}
 
 module.exports = {
 	activate,

@@ -11,3 +11,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
     import component "~/component.svelte"
    ```
 - structure  [ ~ -> src ]
+
+## [v 0.0.6]
+
+- other fixes and optimized for design develop
+- command svelte-server run and down server
+
+## [v 0.0.7]
+
+- fix alias [~ -> ./src]
+
+- add icon
